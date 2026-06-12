@@ -55,7 +55,8 @@ export default function OperationPage() {
                 offers: offers.map(({ name, salesPageUrl, riskLevel }) => ({ name, salesPageUrl, riskLevel })),
             })
 
-            router.push("/onboarding/documents")
+            // Etapa de documentos em standby — segue direto para a tela de aprovação
+            router.push("/onboarding/pending")
             router.refresh()
 
         } catch (err) {
@@ -78,7 +79,7 @@ export default function OperationPage() {
                         <div className="flex items-center gap-2 text-sm">
                             <span className="text-muted-foreground">Etapa</span>
                             <span className="font-semibold text-primary">2</span>
-                            <span className="text-muted-foreground">de 3</span>
+                            <span className="text-muted-foreground">de 2</span>
                         </div>
                     </div>
                 </div>

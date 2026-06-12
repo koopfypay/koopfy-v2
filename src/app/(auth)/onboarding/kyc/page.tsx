@@ -103,7 +103,7 @@ export default function KYCPage() {
                         <div className="flex items-center gap-2 text-sm">
                             <span className="text-muted-foreground">Etapa</span>
                             <span className="font-semibold text-primary">1</span>
-                            <span className="text-muted-foreground">de 3</span>
+                            <span className="text-muted-foreground">de 2</span>
                         </div>
                     </div>
                 </div>
