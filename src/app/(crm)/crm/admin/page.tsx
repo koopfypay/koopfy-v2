@@ -1,0 +1,6 @@
+// app/crm/admin/page.tsx
+import { redirect } from "next/navigation"
+
+export default function AdminRootPage() {
+  redirect("/crm/admin/overview")
+}

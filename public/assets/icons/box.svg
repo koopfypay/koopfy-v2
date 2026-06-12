@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="168px" height="152px" viewBox="0 0 168 152" version="1.1">
+    <!-- Generator: Sketch 49.2 (51160) - http://www.bohemiancoding.com/sketch -->
+    <title>Group 13</title>
+    <desc>Created with Sketch.</desc>
+    <defs/>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group-13" transform="translate(1.000000, 0.000000)">
+            <path d="M115.873704,50.7072267 L98.8966332,61.814781 L12.2895535,34.2267034 L29.3367888,23.1866148 L115.873704,50.7072267 Z M142.48218,33.3847313 L125.507807,44.4922856 L38.9735907,16.9015094 L55.9452644,5.86681804 L142.48218,33.3847313 Z M94.360239,71.5217472 L94.360239,137.732594 L5.30550334,109.378106 L5.30550334,43.2347248 L94.360239,71.5217472 Z M154.841898,109.097448 L154.841898,31.7088831 L55.1761553,0 L24.3011483,20.04811 L22.7656288,21.0951778 L0,35.899853 L0,113.291117 L99.6630437,145 L154.841898,109.097448 Z M140.177551,61.183302 L115.873704,77.0404422 C114.545979,77.8797156 113.566377,74.2446632 113.566377,72.0803633 C113.566377,69.845899 114.473116,67.9595578 115.873704,67.0528187 L140.177551,51.1956785 C141.642906,50.7072267 142.48218,53.9887588 142.48218,56.2259217 C142.48218,58.3929203 141.575441,60.2765629 140.177551,61.183302 Z" id="Fill-7" fill="#E5E5E5"/>
+            <text id="LARGURA" transform="translate(133.889227, 134.714442) rotate(-34.000000) translate(-133.889227, -134.714442) " font-family="Rubik-Bold, Rubik" font-size="9" font-weight="bold" fill="#725BC2">
+                <tspan x="111.889227" y="137.714442">LARGURA</tspan>
+            </text>
+            <text id="ALTURA" transform="translate(163.889227, 74.714442) rotate(-90.000000) translate(-163.889227, -74.714442) " font-family="Rubik-Bold, Rubik" font-size="9" font-weight="bold" fill="#725BC2">
+                <tspan x="145.889227" y="77.7144418">ALTURA</tspan>
+            </text>
+            <text id="COMPRIMENTO" transform="translate(49.881007, 140.261860) rotate(16.000000) translate(-49.881007, -140.261860) " font-family="Rubik-Bold, Rubik" font-size="9" font-weight="bold" fill="#725BC2">
+                <tspan x="15.8810065" y="143.26186">COMPRIMENTO</tspan>
+            </text>
+            <path d="M99.5,145.5 L154.5,109.5" id="Line-2" stroke="#725BC2" stroke-width="2" stroke-linecap="square"/>
+            <path d="M154.5,32.5 L154.5,108.660004" id="Line-4" stroke="#725BC2" stroke-width="2" stroke-linecap="square"/>
+            <path d="M0.5,114.5 L98.5,145.5" id="Line-3" stroke="#725BC2" stroke-width="2" stroke-linecap="square"/>
+        </g>
+    </g>
+</svg>
