@@ -4,7 +4,7 @@
 
 "use client"
 
-const CRM_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3007"
+const CRM_BASE = process.env.NEXT_PUBLIC_API_URL ?? "https://api.koopfy.com"
 const LOGIN_PATH = "/crm/login"
 
 export type ManagerRole = "manager" | "supervisor" | "admin"
