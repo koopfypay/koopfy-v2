@@ -40,9 +40,10 @@ interface AuthContextValue {
   isLoading:               boolean
   isAuthenticated:         boolean
   operationSetupCompleted: boolean
-  login:       (email: string, password: string) => Promise<void>
-  logout:      () => void
-  refreshUser: () => Promise<void>
+  login:        (email: string, password: string) => Promise<void>
+  logout:       () => void
+  refreshUser:  () => Promise<void>
+  adoptSession: (token: string) => Promise<boolean>
 }
 
 // ─── Rotas ────────────────────────────────────────────────────────────────────
@@ -276,6 +277,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await loadUser()
   }, [loadUser])
 
+  // ─── SSO (handoff checkout → pay) ─────────────────────────────────────────
+  // Salva o token vindo da URL, valida via /auth/me e marca a sessão como
+  // autenticada SEM hard reload. Retorna true se o token é válido. Quem decide
+  // a navegação seguinte é a página /sso (o destino reroteia por status).
+
+  const adoptSession = useCallback(async (token: string): Promise<boolean> => {
+    saveToken(token)
+    setState(s => ({ ...s, status: "loading" }))
+    try {
+      const data = await authApi.me()
+      setState({ status: "authenticated", user: mapUser(data), pendingRedirect: null })
+      return true
+    } catch {
+      clearToken()
+      setState({ user: null, status: "unauthenticated", pendingRedirect: null })
+      return false
+    }
+  }, [])
+
   // ─── Value ────────────────────────────────────────────────────────────────
 
   return (
@@ -288,6 +308,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       refreshUser,
+      adoptSession,
     }}>
       {children}
     </AuthContext.Provider>
