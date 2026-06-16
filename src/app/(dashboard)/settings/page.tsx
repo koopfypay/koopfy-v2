@@ -89,7 +89,7 @@ const WEBHOOK_EVENTS = [
 ]
 
 
-const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005'
+const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3007'
 
 async function apiFetch<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const token = getToken()

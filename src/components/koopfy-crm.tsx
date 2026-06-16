@@ -59,7 +59,7 @@ interface SellerRow {
 }
 
 interface SellerDetail {
-    seller: SellerRow & { enabled_methods: string[]; rejection_reason?: string; provider_default?: string | null }
+    seller: SellerRow & { enabled_methods: string[]; rejection_reason?: string; provider_default?: string | null; provider_mid?: string | null }
     offers: any[]; fees: any; notes: any[]; log: any[]; kyc: any; documents: any
 }
 
@@ -69,6 +69,8 @@ const PROVIDER_CFG: Record<string, { label: string; color: string; bg: string }>
     sibs: { label: "SIBS", color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
     stripe_crypto: { label: "Stripe Crypto", color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
     onramp: { label: "Onramp", color: "text-pink-400", bg: "bg-pink-500/10 border-pink-500/20" },
+    setinel_gate: { label: "Sentinel Gate", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    approvebly: { label: "Approvebly", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
 }
 
 const PROVIDER_OPTIONS: { id: string | null; label: string }[] = [
@@ -78,7 +80,12 @@ const PROVIDER_OPTIONS: { id: string | null; label: string }[] = [
     { id: "sibs", label: "SIBS" },
     { id: "stripe_crypto", label: "Stripe Crypto" },
     { id: "onramp", label: "Onramp" },
+    { id: "setinel_gate", label: "Sentinel Gate" },
+    { id: "approvebly", label: "Approvebly" },
 ]
+
+// MID só faz sentido pro Sentinel Gate.
+const MID_PROVIDERS = new Set(["setinel_gate"])
 
 // ─── Formatadores ─────────────────────────────────────────────────────────
 
@@ -344,6 +351,7 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
     const [error, setError] = useState<string | null>(null)
     const [tab, setTab] = useState("overview")
     const [providerOpen, setProviderOpen] = useState(false)
+    const [midOpen, setMidOpen] = useState(false)
 
     const [approveOpen, setApproveOpen] = useState(false)
     const [rejectOpen, setRejectOpen] = useState(false)
@@ -466,6 +474,13 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
                             <Wallet className="size-3.5" />Alterar Provider
                         </Button>
 
+                        {MID_PROVIDERS.has(seller.provider_default ?? "") && (
+                            <Button size="sm" variant="outline" className="gap-2 border-emerald-700/50 text-emerald-400 hover:text-emerald-300"
+                                onClick={() => setMidOpen(true)}>
+                                <Wallet className="size-3.5" />MID Sentinel
+                            </Button>
+                        )}
+
                         {seller.status === "pending_review" && isAssignedToMe && (
                             <>
                                 <Button size="sm" className="gap-2" onClick={() => setApproveOpen(true)}>
@@ -547,6 +562,9 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
                                         ? (PROVIDER_CFG[seller.provider_default]?.label ?? seller.provider_default)
                                         : "Não definido"
                                 },
+                                ...(MID_PROVIDERS.has(seller.provider_default ?? "")
+                                    ? [{ label: "MID Sentinel", value: seller.provider_mid || "Default (env)" }]
+                                    : []),
                             ].map(row => (
                                 <div key={row.label} className="flex justify-between text-sm">
                                     <span className="text-zinc-500">{row.label}</span>
@@ -886,6 +904,15 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
                 onOpenChange={setProviderOpen}
                 current={seller.provider_default ?? null}
                 onConfirm={(dto: any) => act(() => crmFetch(`/sellers/${sellerId}/provider`, {
+                    method: "PATCH", body: JSON.stringify(dto),
+                }))}
+            />
+
+            <MidDialog
+                open={midOpen}
+                onOpenChange={setMidOpen}
+                current={seller.provider_mid ?? null}
+                onConfirm={(dto: any) => act(() => crmFetch(`/sellers/${sellerId}/mid`, {
                     method: "PATCH", body: JSON.stringify(dto),
                 }))}
             />
@@ -1512,6 +1539,100 @@ function ProviderDialog({ open, onOpenChange, current, onConfirm }: any) {
                     </Button>
                     <Button disabled={loading || !changed} onClick={submit}>
                         {loading ? "Salvando..." : "Salvar Provider"}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+function MidDialog({ open, onOpenChange, current, onConfirm }: any) {
+    const [mids, setMids] = useState<{ mid: string; label?: string | null; status?: string }[]>([])
+    const [mid, setMid] = useState<string | null>(current ?? null)
+    const [notes, setNotes] = useState("")
+    const [loading, setLoading] = useState(false)
+    const [fetching, setFetching] = useState(false)
+
+    useEffect(() => { setMid(current ?? null) }, [current, open])
+
+    useEffect(() => {
+        if (!open) return
+        setFetching(true)
+        crmFetch<any[]>(`/sentinel-mids`)
+            .then(rows => setMids(rows ?? []))
+            .catch(() => setMids([]))
+            .finally(() => setFetching(false))
+    }, [open])
+
+    const submit = async () => {
+        setLoading(true)
+        try {
+            await onConfirm({ mid, notes: notes.trim() || undefined })
+            onOpenChange(false)
+            setNotes("")
+        } catch { } finally { setLoading(false) }
+    }
+
+    const changed = mid !== (current ?? null)
+    const options: { mid: string | null; label: string }[] = [
+        { mid: null, label: "Default (env)" },
+        ...mids
+            .filter(m => m.status !== "inactive")
+            .map(m => ({ mid: m.mid, label: m.label ? `${m.label} · ${m.mid}` : m.mid })),
+    ]
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md bg-zinc-950 border-zinc-800">
+                <DialogHeader>
+                    <DialogTitle className="text-white flex items-center gap-2">
+                        <Wallet className="size-5 text-emerald-400" />MID Sentinel
+                    </DialogTitle>
+                    <DialogDescription className="text-zinc-500">
+                        Define qual MID do Sentinel (e suas credenciais) este seller usa.
+                        &quot;Default&quot; usa as credenciais do ambiente.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                    {fetching ? (
+                        <p className="text-sm text-zinc-500">Carregando MIDs…</p>
+                    ) : (
+                        <div className="space-y-2 max-h-72 overflow-auto">
+                            {options.map(opt => {
+                                const active = mid === opt.mid
+                                return (
+                                    <button key={String(opt.mid)} type="button" onClick={() => setMid(opt.mid)}
+                                        className={cn(
+                                            "w-full flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-all",
+                                            active ? "border-emerald-500 bg-emerald-500/10" : "border-zinc-800 hover:border-zinc-600"
+                                        )}>
+                                        <div className={cn(
+                                            "size-4 rounded-full border-2 shrink-0 flex items-center justify-center",
+                                            active ? "border-emerald-500" : "border-zinc-600"
+                                        )}>
+                                            {active && <div className="size-2 rounded-full bg-emerald-500" />}
+                                        </div>
+                                        <span className={cn("text-sm font-medium", active ? "text-emerald-400" : "text-zinc-300")}>
+                                            {opt.label}
+                                        </span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    )}
+
+                    <Textarea placeholder="Motivo da alteração (opcional)" value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        className="bg-zinc-900 border-zinc-800 text-white resize-none" rows={2} />
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" className="border-zinc-700 text-zinc-400" onClick={() => onOpenChange(false)}>
+                        Cancelar
+                    </Button>
+                    <Button disabled={loading || !changed} onClick={submit}>
+                        {loading ? "Salvando..." : "Salvar MID"}
                     </Button>
                 </DialogFooter>
             </DialogContent>

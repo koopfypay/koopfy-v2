@@ -32,6 +32,10 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# exceção: bases públicas da API (sem segredos) são versionadas;
+# segredos/overrides locais vão em .env.local (continua ignorado)
+!.env.production
+!.env.development
 
 # vercel
 .vercel

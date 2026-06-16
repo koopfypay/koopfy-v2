@@ -55,12 +55,17 @@ const PUBLIC_ROUTES = [
   "/reset-password",
   "/verify-email",
   "/error",
+  // SSO vindo do checkout: salva o token (da URL) e recarrega já autenticado.
+  // Precisa ser "pública" senão o provider redireciona pro login ANTES do token
+  // ser salvo. O próprio /sso controla a navegação seguinte.
+  "/sso",
 ]
 
 const SKIP_AUTH_REDIRECT = [
   "/sign-up-success",
   "/verify-email",
   "/reset-password",
+  "/sso",
 ]
 
 const ONBOARDING_ROUTES = [

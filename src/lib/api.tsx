@@ -22,7 +22,7 @@ import {
     PaginationParams,
 } from "@/types/api.types"
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.koopfy.com"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.koopfy.com/pay"
 
 // ─── Classe de erro ───────────────────────────────────────────────────────────
 

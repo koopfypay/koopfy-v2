@@ -77,6 +77,16 @@ export default function DocumentsPage() {
                 proofOfResidence,
             })
 
+            // Se o seller veio via SSO do checkout, volta pra lá ao concluir.
+            const ret = typeof window !== "undefined"
+                ? sessionStorage.getItem("koopfy_return_url")
+                : null
+            if (ret) {
+                sessionStorage.removeItem("koopfy_return_url")
+                window.location.href = ret
+                return
+            }
+
             router.push(res.redirectTo ?? "/onboarding/pending")
             router.refresh()
 
