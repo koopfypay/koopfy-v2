@@ -59,7 +59,7 @@ const navItems = [
   { title: "Repasses",      url: "/transfers",         icon: RefreshCcw      },
   { title: "Contestações",  url: "/disputes",          icon: MessageSquareWarning },
   { title: "Métodos",       url: "/payment-methods",   icon: ArrowLeftRight  },
-  { title: "API",           url: "/api/docs",          icon: Code2           },
+  { title: "API",           url: "/api-docs",          icon: Code2           },
   { title: "Configurações", url: "/settings",          icon: Settings        },
 ]
 
