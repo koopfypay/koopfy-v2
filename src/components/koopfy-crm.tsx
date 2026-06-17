@@ -71,6 +71,7 @@ const PROVIDER_CFG: Record<string, { label: string; color: string; bg: string }>
     onramp: { label: "Onramp", color: "text-pink-400", bg: "bg-pink-500/10 border-pink-500/20" },
     setinel_gate: { label: "Sentinel Gate", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
     approvebly: { label: "Approvebly", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    simulator: { label: "Simulator (teste)", color: "text-zinc-300", bg: "bg-zinc-500/10 border-zinc-500/20" },
 }
 
 const PROVIDER_OPTIONS: { id: string | null; label: string }[] = [
@@ -82,6 +83,7 @@ const PROVIDER_OPTIONS: { id: string | null; label: string }[] = [
     { id: "onramp", label: "Onramp" },
     { id: "setinel_gate", label: "Sentinel Gate" },
     { id: "approvebly", label: "Approvebly" },
+    { id: "simulator", label: "Simulator (teste)" },
 ]
 
 // MID só faz sentido pro Sentinel Gate.
