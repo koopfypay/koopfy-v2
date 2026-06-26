@@ -59,7 +59,7 @@ interface SellerRow {
 }
 
 interface SellerDetail {
-    seller: SellerRow & { enabled_methods: string[]; rejection_reason?: string; provider_default?: string | null; provider_mid?: string | null }
+    seller: SellerRow & { enabled_methods: string[]; rejection_reason?: string; provider_default?: string | null; provider_mid?: string | null; coinflow_merchant_id?: string | null }
     offers: any[]; fees: any; notes: any[]; log: any[]; kyc: any; documents: any
 }
 
@@ -71,6 +71,7 @@ const PROVIDER_CFG: Record<string, { label: string; color: string; bg: string }>
     onramp: { label: "Onramp", color: "text-pink-400", bg: "bg-pink-500/10 border-pink-500/20" },
     setinel_gate: { label: "Sentinel Gate", color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
     approvebly: { label: "Approvebly", color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
+    coinflow: { label: "Coinflow", color: "text-teal-400", bg: "bg-teal-500/10 border-teal-500/20" },
     simulator: { label: "Simulator (teste)", color: "text-zinc-300", bg: "bg-zinc-500/10 border-zinc-500/20" },
 }
 
@@ -83,11 +84,13 @@ const PROVIDER_OPTIONS: { id: string | null; label: string }[] = [
     { id: "onramp", label: "Onramp" },
     { id: "setinel_gate", label: "Sentinel Gate" },
     { id: "approvebly", label: "Approvebly" },
+    { id: "coinflow", label: "Coinflow" },
     { id: "simulator", label: "Simulator (teste)" },
 ]
 
-// MID só faz sentido pro Sentinel Gate.
-const MID_PROVIDERS = new Set(["setinel_gate"])
+// MID / Merchant ID por seller — Sentinel (lista de MIDs) e Coinflow (texto livre).
+const MID_PROVIDERS = new Set(["setinel_gate", "coinflow"])
+const midLabelFor = (p?: string | null) => (p === "coinflow" ? "Merchant ID" : "MID Sentinel")
 
 // ─── Formatadores ─────────────────────────────────────────────────────────
 
@@ -479,7 +482,7 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
                         {MID_PROVIDERS.has(seller.provider_default ?? "") && (
                             <Button size="sm" variant="outline" className="gap-2 border-emerald-700/50 text-emerald-400 hover:text-emerald-300"
                                 onClick={() => setMidOpen(true)}>
-                                <Wallet className="size-3.5" />MID Sentinel
+                                <Wallet className="size-3.5" />{midLabelFor(seller.provider_default)}
                             </Button>
                         )}
 
@@ -565,7 +568,10 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
                                         : "Não definido"
                                 },
                                 ...(MID_PROVIDERS.has(seller.provider_default ?? "")
-                                    ? [{ label: "MID Sentinel", value: seller.provider_mid || "Default (env)" }]
+                                    ? [{
+                                        label: midLabelFor(seller.provider_default),
+                                        value: (seller.provider_default === "coinflow" ? seller.coinflow_merchant_id : seller.provider_mid) || "Default (env)",
+                                    }]
                                     : []),
                             ].map(row => (
                                 <div key={row.label} className="flex justify-between text-sm">
@@ -913,7 +919,8 @@ export function SellerDetailView({ sellerId, onBack }: { sellerId: string; onBac
             <MidDialog
                 open={midOpen}
                 onOpenChange={setMidOpen}
-                current={seller.provider_mid ?? null}
+                provider={seller.provider_default ?? null}
+                current={(seller.provider_default === "coinflow" ? seller.coinflow_merchant_id : seller.provider_mid) ?? null}
                 onConfirm={(dto: any) => act(() => crmFetch(`/sellers/${sellerId}/mid`, {
                     method: "PATCH", body: JSON.stringify(dto),
                 }))}
@@ -1548,7 +1555,8 @@ function ProviderDialog({ open, onOpenChange, current, onConfirm }: any) {
     )
 }
 
-function MidDialog({ open, onOpenChange, current, onConfirm }: any) {
+function MidDialog({ open, onOpenChange, current, onConfirm, provider }: any) {
+    const isCoinflow = provider === "coinflow"
     const [mids, setMids] = useState<{ mid: string; label?: string | null; status?: string }[]>([])
     const [mid, setMid] = useState<string | null>(current ?? null)
     const [notes, setNotes] = useState("")
@@ -1558,13 +1566,14 @@ function MidDialog({ open, onOpenChange, current, onConfirm }: any) {
     useEffect(() => { setMid(current ?? null) }, [current, open])
 
     useEffect(() => {
-        if (!open) return
+        // Coinflow é texto livre (merchantId) — não há lista de MIDs pra buscar.
+        if (!open || isCoinflow) return
         setFetching(true)
         crmFetch<any[]>(`/sentinel-mids`)
             .then(rows => setMids(rows ?? []))
             .catch(() => setMids([]))
             .finally(() => setFetching(false))
-    }, [open])
+    }, [open, isCoinflow])
 
     const submit = async () => {
         setLoading(true)
@@ -1588,16 +1597,24 @@ function MidDialog({ open, onOpenChange, current, onConfirm }: any) {
             <DialogContent className="max-w-md bg-zinc-950 border-zinc-800">
                 <DialogHeader>
                     <DialogTitle className="text-white flex items-center gap-2">
-                        <Wallet className="size-5 text-emerald-400" />MID Sentinel
+                        <Wallet className="size-5 text-emerald-400" />{isCoinflow ? "Merchant ID (Coinflow)" : "MID Sentinel"}
                     </DialogTitle>
                     <DialogDescription className="text-zinc-500">
-                        Define qual MID do Sentinel (e suas credenciais) este seller usa.
-                        &quot;Default&quot; usa as credenciais do ambiente.
+                        {isCoinflow
+                            ? "Define o Merchant ID da Coinflow que este seller usa (ex.: koopfy-sandbox). Vazio usa o do ambiente."
+                            : "Define qual MID do Sentinel (e suas credenciais) este seller usa. \"Default\" usa as credenciais do ambiente."}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4">
-                    {fetching ? (
+                    {isCoinflow ? (
+                        <Input
+                            value={mid ?? ""}
+                            onChange={e => setMid(e.target.value.trim() || null)}
+                            placeholder="koopfy-sandbox"
+                            className="bg-zinc-900 border-zinc-800 text-white"
+                        />
+                    ) : fetching ? (
                         <p className="text-sm text-zinc-500">Carregando MIDs…</p>
                     ) : (
                         <div className="space-y-2 max-h-72 overflow-auto">
